@@ -33,6 +33,7 @@ module.exports = (sequelize, Sequelize) => {
           rol: {
             type: DataTypes.INTEGER,
             allowNull: false,
+            defaultValue: 1 // Valor por defecto para el rol
           }
       
     });

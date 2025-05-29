@@ -35,7 +35,7 @@ function generateAccessToken(data) {
 }
 
 // Registra un nuevo usuario con contraseña encriptada
-async function registerUser(email, password) {
+async function registerUser(email, password, nombre, telefono, rol = 1) {
   // Verifica si el usuario ya existe
   const existingUser = await Usuario.findOne({ where: { email } });
   if (existingUser) {
@@ -45,12 +45,18 @@ async function registerUser(email, password) {
   // Encripta la contraseña
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  // Crea y guarda el nuevo usuario
-  const newUser = await Usuario.create({ email, password: hashedPassword });
+  // Crea y guarda el nuevo usuario con los campos adicionales
+  const newUser = await Usuario.create({
+    email,
+    password: hashedPassword,
+    nombre,
+    telefono,
+    rol
+  });
 
   console.log("newUser:", newUser);
 
-  return { email: newUser.email };
+  return { email: newUser.email, nombre: newUser.nombre, telefono: newUser.telefono, rol: newUser.rol };
 }
 
 module.exports = {

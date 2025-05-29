@@ -18,4 +18,7 @@ module.exports = (app) => {
     const rutasAuth = require("./auth.routes");
     app.use("/auth", rutasAuth);
 
+    const rutasAI = require("./ai.routes");
+    app.use("/api", rutasAI);
+
 };
