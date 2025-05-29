@@ -23,6 +23,15 @@ Horario.hasMany(Reserva, { foreignKey: 'idHorario' });
 Cancelacion.belongsTo(Reserva, { foreignKey: 'idReserva' });
 Reserva.hasOne(Cancelacion, { foreignKey: 'idReserva' });
 
+// Sincronizar la base de datos
+sequelize.sync({ force: false }) // Cambiar a true si deseas sobrescribir las tablas existentes
+  .then(() => {
+    console.log("Base de datos sincronizada correctamente.");
+  })
+  .catch((error) => {
+    console.error("Error al sincronizar la base de datos:", error);
+  });
+
 module.exports = {
   sequelize,
   Usuario,

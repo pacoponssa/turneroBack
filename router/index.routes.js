@@ -1,5 +1,7 @@
 module.exports = (app) => {
      
+    const rutasUsuario = require("./usuario.routes");
+    app.use("/usuarios", rutasUsuario);
  
     const rutasDisciplina = require("./disciplina.routes");
     app.use("/disciplina", rutasDisciplina);
@@ -12,5 +14,8 @@ module.exports = (app) => {
 
     const rutasCancelacion = require("./cancelacion.routes");
     app.use("/cancelacion", rutasCancelacion);
+
+    const rutasAuth = require("./auth.routes");
+    app.use("/auth", rutasAuth);
 
 };

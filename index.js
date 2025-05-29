@@ -30,9 +30,12 @@ db.sequelize.sync({alter:true})
 // importar rutas
 require("./router/index.routes")(app);
 
+require('dotenv').config();
 
 app.listen(port, () => {
   console.log("El servidor esta corriendo en el puerto ", port)
 });
 
- 
+process.env.ACCESS_TOKEN_SECRET = "3x@mpl3$3cr3tK3y!2025";
+
+
