@@ -22,12 +22,12 @@ exports.obtenerCancelaciones = (req, res) => {
 };
 
 exports.crearCancelacion = (req, res) => {
-  const { idReserva, motivo, fechaCancelacion } = req.body;
+  const { idReserva, motivo } = req.body;
 
   Cancelacion.create({
     idReserva,
     motivo,
-    fechaCancelacion,
+    fechaCancelacion: new Date(),
   })
     .then((registro) => {
       res.status(201).json({
@@ -46,3 +46,5 @@ exports.crearCancelacion = (req, res) => {
       });
     });
 };
+
+

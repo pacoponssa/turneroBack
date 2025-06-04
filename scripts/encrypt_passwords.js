@@ -8,28 +8,28 @@ const Usuario = db.Usuario;
     const usuarios = await Usuario.findAll();
 
     for (const usuario of usuarios) {
-      // Verifica si la contraseña ya está encriptada
+      // Verifica si el password ya está encriptado
       const isEncrypted = usuario.password.startsWith("$2b$");
 
       if (!isEncrypted) {
-        // Encripta la contraseña
+        // Encripta el password
         const hashedPassword = await bcrypt.hash(usuario.password, 10);
 
-        // Actualiza la contraseña en la base de datos
+        // Actualiza el password en la base de datos
         await Usuario.update(
           { password: hashedPassword },
-          { where: { id: usuario.id } }
+          { where: { idUsuario: usuario.idUsuario } }
         );
 
-        console.log(`Contraseña encriptada para el usuario con ID: ${usuario.id}`);
+        console.log(`Password encriptado para el usuario con ID: ${usuario.idUsuario}`);
       } else {
-        console.log(`La contraseña del usuario con ID: ${usuario.id} ya está encriptada.`);
+        console.log(`El password del usuario con ID: ${usuario.idUsuario} ya está encriptado.`);
       }
     }
 
     console.log("Proceso de encriptación completado.");
   } catch (error) {
-    console.error("Error al encriptar contraseñas:", error);
+    console.error("Error al encriptar passwords:", error);
   } finally {
     process.exit();
   }

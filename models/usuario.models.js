@@ -21,11 +21,11 @@ module.exports = (sequelize, Sequelize) => {
           },
 
           telefono: {
-            type: DataTypes.STRING,
+            type: DataTypes.STRING(15),
             allowNull: true,
           },
 
-          contraseña: {
+          password: {
             type: DataTypes.STRING(255),
             allowNull: false,
           },

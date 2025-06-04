@@ -11,15 +11,15 @@ async function verifyUser(email, password) {
   console.log("Usuario encontrado en la base de datos:", user);
 
   if (!user || !user.password) {
-    console.error("Usuario no encontrado o contraseña no definida");
+    console.error("Usuario no encontrado o password no definido");
     return null;
   }
 
-  console.log("Contraseña proporcionada:", password);
-  console.log("Contraseña almacenada:", user.password);
+  console.log("Password proporcionado:", password);
+  console.log("Password almacenado:", user.password);
 
   const validPassword = await bcrypt.compare(password, user.password);
-  console.log("Resultado de la comparación de contraseñas:", validPassword);
+  console.log("Resultado de la comparación de passwords:", validPassword);
 
   return validPassword ? user : null;
 }
@@ -34,7 +34,7 @@ function generateAccessToken(data) {
   return jwt.sign(data, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "15m" });
 }
 
-// Registra un nuevo usuario con contraseña encriptada
+// Registra un nuevo usuario con password encriptado
 async function registerUser(email, password, nombre, telefono, rol = 1) {
   // Verifica si el usuario ya existe
   const existingUser = await Usuario.findOne({ where: { email } });
@@ -42,7 +42,7 @@ async function registerUser(email, password, nombre, telefono, rol = 1) {
     throw new Error("El usuario ya existe");
   }
 
-  // Encripta la contraseña
+  // Encripta el password
   const hashedPassword = await bcrypt.hash(password, 10);
 
   // Crea y guarda el nuevo usuario con los campos adicionales

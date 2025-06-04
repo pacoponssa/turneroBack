@@ -9,15 +9,6 @@ module.exports = (sequelize, Sequelize) => {
             primaryKey: true,
         },
 
-        idDisciplina: {
-            type: DataTypes.INTEGER,
-            allowNull: false,
-            references: {
-                model: 'Disciplinas',
-                key: 'idDisciplina'
-            }
-        },
-
         fecha: {
             type: DataTypes.DATE,
             allowNull: false,

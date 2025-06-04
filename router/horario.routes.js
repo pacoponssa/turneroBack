@@ -4,5 +4,7 @@ const horarioController = require("../controllers/horario.controllers");
 
 router.get("/", horarioController.obtenerHorarios);
 router.post("/", horarioController.crearHorario);
+router.delete("/:id", horarioController.eliminarHorario);
+router.put("/:id", horarioController.actualizarHorario);    
 
 module.exports = router;

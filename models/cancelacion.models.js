@@ -8,12 +8,7 @@ module.exports = (sequelize, Sequelize) => {
             autoIncrement: true,
             primaryKey: true,
         },
-
-        idReserva: {
-            type: DataTypes.INTEGER,
-            allowNull: false,
-        },
-
+        
         motivo: {
             type: DataTypes.TEXT,
             allowNull: true,

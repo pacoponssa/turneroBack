@@ -1,17 +1,18 @@
-const Rutas = require('express').Router();
-const controladorUsuario = require('../controllers/usuario.controllers');
+const express = require("express");
+const router = express.Router();
+const UsuarioController = require('../controllers/usuario.controllers');
 
 // CRUD
 
 // C Create
-Rutas.post('/', controladorUsuario.crearUsuario );
+router.post('/', UsuarioController.crearUsuario );
 // R  Read
-Rutas.get('/', controladorUsuario.obtenerUsuarios );
-Rutas.get('/:id', controladorUsuario.obtenerUsuarioPorId );
-// Rutas.get('/usuario/:disponible', controladorUsuario.obtenerProductoDisponible);
+router.get('/', UsuarioController.obtenerUsuarios );
+router.get('/:id', UsuarioController.obtenerUsuarioPorId );
+// Rutas.get('/usuario/:disponible', UsuarioController.obtenerProductoDisponible);
 // U Update
-Rutas.put('/:id', controladorUsuario.actualizarUsuario );
+router.put('/:id', UsuarioController.actualizarUsuario );
 // D Delete
-Rutas.delete('/:id', controladorUsuario.eliminarUsuario );
+router.delete('/:id', UsuarioController.eliminarUsuario );
 
-module.exports = Rutas;
+module.exports = router;
