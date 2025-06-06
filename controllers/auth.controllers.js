@@ -21,10 +21,22 @@ async function login(req, res) {
       .json({ message: "Email o password incorrectos" });
 
   // Genera los tokens de acceso y refresh
-  const accessToken = generateAccessToken({ email: user.email });
- 
+ const accessToken = generateAccessToken({
+  idUsuario: user.idUsuario,
+  email: user.email,
+  rol: user.rol
+});
 
-  res.json({ accessToken });
+res.json({
+  accessToken,
+  usuario: {
+    idUsuario: user.idUsuario,
+    nombre: user.nombre,
+    email: user.email,
+    rol: user.rol
+  }
+});
+
 }
 
 // Controlador para refrescar el token

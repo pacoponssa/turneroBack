@@ -1,6 +1,9 @@
 const db = require("../models/index");
 const Usuario = db.Usuario;
+const { registerUser } = require("../controllers/auth.service");
+const bcrypt = require("bcrypt");
 
+// Obtener todos los usuarios
 exports.obtenerUsuarios = (req, res) => {
   Usuario.findAll()
     .then((registros) => {
@@ -21,6 +24,7 @@ exports.obtenerUsuarios = (req, res) => {
     });
 };
 
+// Obtener usuario por ID
 exports.obtenerUsuarioPorId = (req, res) => {
   const _id = req.params.id;
 
@@ -54,109 +58,58 @@ exports.obtenerUsuarioPorId = (req, res) => {
     });
 };
 
-
+// Crear usuario (usando registerUser con encriptación incluida)
 exports.crearUsuario = async (req, res) => {
+  const { nombre, email, password, telefono, rol } = req.body;
+
   try {
-    let { nombre, email, telefono, password, rol } = req.body;
-
-    // Convertir el rol si viene como string
-    if (typeof rol === 'string') {
-      rol = rol.toLowerCase() === 'admin' ? 2 : 1;
-    }
-
-    // Validar rol
-    if (![1, 2].includes(rol)) {
-      return res.status(400).json({
-        ok: false,
-        msg: 'Rol inválido. Use 1 (usuario), 2 (admin), o sus equivalentes como texto.',
-      });
-    }
-
-    const nuevoUsuario = await db.Usuario.create({
-      nombre,
-      email,
-      telefono,
-      password,
-      rol,
-    });
+    // Se usa el método centralizado que incluye validaciones y encriptado
+    const nuevoUsuario = await registerUser(email, password, nombre, telefono, rol);
 
     res.status(201).json({
-      ok: true,
-      msg: 'Usuario creado correctamente',
+      message: "Usuario creado exitosamente",
       data: nuevoUsuario,
     });
   } catch (error) {
     res.status(500).json({
-      ok: false,
-      msg: 'Error al crear el usuario',
-      data: error.message,
+      message: "Error al crear usuario",
+      error: error.message,
     });
   }
 };
 
+// Actualizar usuario
+exports.actualizarUsuario = async (req, res) => {
+  const { id } = req.params;
+  let { nombre, email, password, telefono, rol } = req.body;
 
-exports.crearUsuario = (req, res) => {
-  const { nombre, email, telefono, password, rol } = req.body;
+  try {
+    const usuario = await Usuario.findByPk(id);
+    if (!usuario) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
 
-  Usuario.create({
-    nombre,
-    email,
-    telefono,
-    password,
-    rol   
-  })
-    .then((registro) => {
-      res.status(201).json({
-        ok: true,
-        msg: "Usuario creado",
-        status: 201,
-        data: registro,
-      });
-    })
-    .catch((error) => {
-      res.status(500).json({
-        ok: false,
-        msg: "Error al crear el usuario",
-        status: 500,
-        data: error,
-      });
-    });
-};
+    // Si se envió una nueva contraseña, se encripta
+    if (password) {
+      password = await bcrypt.hash(password, 10);
+    }
 
-exports.actualizarUsuario = (req, res) => {
-  const _id = req.params.id;
-  const { nombre, email, telefono, password, rol } = req.body;
-
-  Usuario.update(
-    {
+    // Se actualizan todos los campos que hayan llegado
+    await usuario.update({
       nombre,
       email,
       telefono,
-      password,
-      rol
-    },
-    {
-      where: { idUsuario: _id },
-    }
-  )
-    .then((registro) => {
-      res.status(200).json({
-        ok: true,
-        msg: "Usuario actualizado",
-        status: 200,
-        data: registro,
-      });
-    })
-    .catch((error) => {
-      res.status(500).json({
-        ok: false,
-        msg: "Error al actualizar el usuario",
-        status: 500,
-        data: error,
-      });
+      rol,
+      ...(password && { password }), // Se actualiza password solo si vino
     });
+
+    res.status(200).json({ message: "Usuario actualizado", data: usuario });
+  } catch (error) {
+    res.status(500).json({ message: "Error al actualizar usuario", error: error.message });
+  }
 };
 
+// Eliminar usuario
 exports.eliminarUsuario = (req, res) => {
   const _id = req.params.id;
 

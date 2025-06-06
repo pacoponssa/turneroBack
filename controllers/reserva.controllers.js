@@ -49,7 +49,7 @@ exports.crearReserva = (req, res) => {
 exports.eliminarReserva = (req, res) => {
   const idReserva = req.params.id;
 
-  Reserva.destroy({ where: { idReserva } })
+  Reserva.destroy({ where: { idReserva: _id }, })
     .then((resultado) => {
       if (resultado) {
         res.status(200).json({
@@ -102,6 +102,37 @@ exports.actualizarReserva = (req, res) => {
       res.status(500).json({
         ok: false,
         msg: "Error al actualizar la reserva",
+        status: 500,
+        data: error,
+      });
+    });
+};
+
+exports.obtenerReservaPorId = (req, res) => {
+  const idReserva = req.params.id;
+
+  Reserva.findOne({ where: { idReserva } })
+    .then((registro) => {
+      if (registro) {
+        res.status(200).json({
+          ok: true,
+          msg: "Reserva encontrada",
+          status: 200,
+          data: registro,
+        });
+      } else {
+        res.status(404).json({
+          ok: false,
+          msg: "Reserva no encontrada",
+          status: 404,
+          data: null,
+        });
+      }
+    })
+    .catch((error) => {
+      res.status(500).json({
+        ok: false,
+        msg: "Error al obtener la reserva",
         status: 500,
         data: error,
       });

@@ -115,3 +115,40 @@ exports.actualizarHorario = (req, res) => {
       });
     });
 };
+
+exports.obtenerHorarioPorId = (req, res) => {
+  const idHorario = req.params.id;
+
+  Horario.findOne({
+    where: { idHorario },
+    include: {
+      model: db.Disciplina,
+      attributes: ['nombre'],
+    },
+  })
+    .then((registro) => {
+      if (registro) {
+        res.status(200).json({
+          ok: true,
+          msg: "Horario encontrado",
+          status: 200,
+          data: registro,
+        });
+      } else {
+        res.status(404).json({
+          ok: false,
+          msg: "Horario no encontrado",
+          status: 404,
+          data: null,
+        });
+      }
+    })
+    .catch((error) => {
+      res.status(500).json({
+        ok: false,
+        msg: "Error al obtener el horario",
+        status: 500,
+        data: error,
+      });
+    });
+};
