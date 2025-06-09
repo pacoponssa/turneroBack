@@ -1,6 +1,7 @@
 const db = require("../models/index");
 const Disciplina = db.Disciplina;
 
+// Obtener todas las disciplinas
 exports.obtenerDisciplinas = (req, res) => {
   Disciplina.findAll()
     .then((registros) => {
@@ -21,12 +22,15 @@ exports.obtenerDisciplinas = (req, res) => {
     });
 };
 
+// Crear una nueva disciplina
 exports.crearDisciplina = (req, res) => {
-  const { nombre, descripcion } = req.body;
+  const { nombre, descripcion, cupoPorTurno, disponibilidad } = req.body;
 
   Disciplina.create({
     nombre,
     descripcion,
+    cupoPorTurno,
+    disponibilidad, // Este campo se guarda como JSON en la BD
   })
     .then((registro) => {
       res.status(201).json({
@@ -46,6 +50,7 @@ exports.crearDisciplina = (req, res) => {
     });
 };
 
+// Eliminar una disciplina por ID
 exports.eliminarDisciplina = (req, res) => {
   const _id = req.params.id;
 
@@ -79,12 +84,13 @@ exports.eliminarDisciplina = (req, res) => {
     });
 };
 
+// Actualizar una disciplina existente
 exports.actualizarDisciplina = (req, res) => {
   const _id = req.params.id;
-  const { nombre, descripcion } = req.body;
+  const { nombre, descripcion, cupoPorTurno, disponibilidad } = req.body;
 
   Disciplina.update(
-    { nombre, descripcion },
+    { nombre, descripcion, cupoPorTurno, disponibilidad },
     { where: { idDisciplina: _id } }
   )
     .then((resultado) => {
@@ -114,6 +120,7 @@ exports.actualizarDisciplina = (req, res) => {
     });
 };
 
+// Obtener una disciplina por ID
 exports.obtenerDisciplinaPorId = (req, res) => {
   const _id = req.params.id;
 
@@ -144,4 +151,3 @@ exports.obtenerDisciplinaPorId = (req, res) => {
       });
     });
 };
-

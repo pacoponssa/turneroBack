@@ -1,14 +1,18 @@
 module.exports = (sequelize, Sequelize) => {
+  const { DataTypes } = Sequelize;
+  const Reserva = sequelize.define(
+    "Reserva",
+    {
+      idReserva: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        primaryKey: true,
+      },
+    },
+    {
+      timestamps: false,
+    }
+  );
 
-    const { DataTypes } = Sequelize;
-    const Reserva = sequelize.define("Reserva", {
-
-        idReserva: {
-            type: DataTypes.INTEGER,
-            autoIncrement: true,
-            primaryKey: true,
-        }
-    });
-
-    return Reserva;
-}
+  return Reserva;
+};

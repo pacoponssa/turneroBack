@@ -35,7 +35,9 @@ module.exports = (sequelize, Sequelize) => {
             allowNull: false,
             defaultValue: 1 // Valor por defecto para el rol
           }
-      
+    }, 
+    {
+        timestamps: false, 
     });
 
     return Usuario;

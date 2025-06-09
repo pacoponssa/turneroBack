@@ -8,32 +8,22 @@ const Horario = require('./horario.models')(sequelize, Sequelize);
 const Reserva = require('./reserva.models')(sequelize, Sequelize);
 const Cancelacion = require('./cancelacion.models')(sequelize, Sequelize);
 
-// Definir relaciones
-// Un horario pertenece a una disciplina
-Horario.belongsTo(Disciplina, { foreignKey: 'idDisciplina' });
-Disciplina.hasMany(Horario, { foreignKey: 'idDisciplina' });
+// Relaciones
+Disciplina.hasMany(Horario, { foreignKey: "idDisciplina" });
+Horario.belongsTo(Disciplina, { foreignKey: "idDisciplina" });
 
-// Una reserva pertenece a un usuario y a un horario
-Reserva.belongsTo(Usuario, { foreignKey: 'idUsuario' });
 Usuario.hasMany(Reserva, { foreignKey: 'idUsuario' });
-Reserva.belongsTo(Horario, { foreignKey: 'idHorario' });
+Reserva.belongsTo(Usuario, { foreignKey: 'idUsuario' });
+
 Horario.hasMany(Reserva, { foreignKey: 'idHorario' });
+Reserva.belongsTo(Horario, { foreignKey: 'idHorario' });
 
-// Una cancelación pertenece a una reserva
-Cancelacion.belongsTo(Reserva, { foreignKey: 'idReserva' });
 Reserva.hasOne(Cancelacion, { foreignKey: 'idReserva' });
-
-// Sincronizar la base de datos
-sequelize.sync({ force: false }) // Cambiar a true si deseas sobrescribir las tablas existentes
-  .then(() => {
-    console.log("Base de datos sincronizada correctamente.");
-  })
-  .catch((error) => {
-    console.error("Error al sincronizar la base de datos:", error);
-  });
+Cancelacion.belongsTo(Reserva, { foreignKey: 'idReserva' });
 
 module.exports = {
   sequelize,
+  Sequelize,
   Usuario,
   Disciplina,
   Horario,

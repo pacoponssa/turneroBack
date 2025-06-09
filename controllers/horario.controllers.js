@@ -1,29 +1,60 @@
 const db = require("../models/index");
 const Horario = db.Horario;
+const Disciplina = db.Disciplina;
 
-exports.obtenerHorarios = (req, res) => {
-  Horario.findAll({
-    include: {
-      model: db.Disciplina,
-      attributes: ['nombre'],
-    },
-  })
-    .then((registros) => {
-      res.status(200).json({
-        ok: true,
-        msg: "Listado de horarios",
-        status: 200,
-        data: registros,
-      });
-    })
-    .catch((error) => {
-      res.status(500).json({
-        ok: false,
-        msg: "Error al obtener los horarios",
-        status: 500,
-        data: error,
-      });
+exports.obtenerHorarios = async (req, res) => {
+  try {
+    // Traemos todos los horarios con su disciplina asociada
+    const horarios = await db.Horario.findAll({
+      include: {
+        model: db.Disciplina,
+        attributes: ['nombre', 'cupoPorTurno'],
+      },
     });
+
+    // Traemos todas las reservas agrupadas por horario
+    const reservas = await db.Reserva.findAll({
+      attributes: ['idHorario', [db.sequelize.fn('COUNT', 'idReserva'), 'cantidad']],
+      group: ['idHorario'],
+      raw: true,
+    });
+
+    // Convertimos las reservas en un objeto para fácil acceso
+    const reservasPorHorario = {};
+    reservas.forEach(r => {
+      reservasPorHorario[r.idHorario] = parseInt(r.cantidad);
+    });
+
+    // Mapeamos los horarios agregando cantidad de reservas y si hay cupo
+    const horariosConReservas = horarios.map(h => {
+      const reservasHechas = reservasPorHorario[h.idHorario] || 0;
+      const cupoMaximo = h.Disciplina?.cupoPorTurno || 0;
+      const disponible = reservasHechas < cupoMaximo;
+
+      return {
+        ...h.toJSON(),
+        reservasHechas,
+        cupoMaximo,
+        disponible
+      };
+    });
+
+    res.status(200).json({
+      ok: true,
+      msg: "Listado de horarios con cupo",
+      status: 200,
+      data: horariosConReservas,
+    });
+
+  } catch (error) {
+    console.error("Error al obtener horarios:", error); 
+    res.status(500).json({
+      ok: false,
+      msg: "Error al obtener los horarios",
+      status: 500,
+      data: error.message || error,
+    });
+  }
 };
 
 exports.crearHorario = (req, res) => {
