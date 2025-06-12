@@ -8,25 +8,28 @@ exports.obtenerHorarios = async (req, res) => {
     const horarios = await db.Horario.findAll({
       include: {
         model: db.Disciplina,
-        attributes: ['nombre', 'cupoPorTurno'],
+        attributes: ["nombre", "cupoPorTurno"],
       },
     });
 
     // Traemos todas las reservas agrupadas por horario
     const reservas = await db.Reserva.findAll({
-      attributes: ['idHorario', [db.sequelize.fn('COUNT', 'idReserva'), 'cantidad']],
-      group: ['idHorario'],
+      attributes: [
+        "idHorario",
+        [db.sequelize.fn("COUNT", "idReserva"), "cantidad"],
+      ],
+      group: ["idHorario"],
       raw: true,
     });
 
     // Convertimos las reservas en un objeto para fácil acceso
     const reservasPorHorario = {};
-    reservas.forEach(r => {
+    reservas.forEach((r) => {
       reservasPorHorario[r.idHorario] = parseInt(r.cantidad);
     });
 
     // Mapeamos los horarios agregando cantidad de reservas y si hay cupo
-    const horariosConReservas = horarios.map(h => {
+    const horariosConReservas = horarios.map((h) => {
       const reservasHechas = reservasPorHorario[h.idHorario] || 0;
       const cupoMaximo = h.Disciplina?.cupoPorTurno || 0;
       const disponible = reservasHechas < cupoMaximo;
@@ -35,7 +38,7 @@ exports.obtenerHorarios = async (req, res) => {
         ...h.toJSON(),
         reservasHechas,
         cupoMaximo,
-        disponible
+        disponible,
       };
     });
 
@@ -45,9 +48,8 @@ exports.obtenerHorarios = async (req, res) => {
       status: 200,
       data: horariosConReservas,
     });
-
   } catch (error) {
-    console.error("Error al obtener horarios:", error); 
+    console.error("Error al obtener horarios:", error);
     res.status(500).json({
       ok: false,
       msg: "Error al obtener los horarios",
@@ -154,7 +156,7 @@ exports.obtenerHorarioPorId = (req, res) => {
     where: { idHorario },
     include: {
       model: db.Disciplina,
-      attributes: ['nombre'],
+      attributes: ["nombre"],
     },
   })
     .then((registro) => {
@@ -183,3 +185,69 @@ exports.obtenerHorarioPorId = (req, res) => {
       });
     });
 };
+
+exports.generarHorariosDesdeDisponibilidad = async (req, res) => {
+  try {
+    const { diasAdelante = 14 } = req.query;
+
+    const disciplinas = await db.Disciplina.findAll();
+    const nuevosHorarios = [];
+
+    const hoy = new Date();
+    const fin = new Date();
+    fin.setDate(hoy.getDate() + parseInt(diasAdelante));
+
+    for (const d of disciplinas) {
+      const disponibilidad = d.disponibilidad;
+
+      if (!Array.isArray(disponibilidad)) continue;
+
+      for (let fecha = new Date(hoy); fecha <= fin; fecha.setDate(fecha.getDate() + 1)) {
+        const dia = fecha.toLocaleDateString("es-AR", { weekday: "long" }).toLowerCase();
+
+        const bloques = disponibilidad.filter(
+          (h) => h.dia?.toLowerCase() === dia
+        );
+
+        for (const bloque of bloques) {
+          const fechaStr = fecha.toISOString().slice(0, 10);
+          const horaInicio = bloque.horaInicio.length === 5 ? `${bloque.horaInicio}:00` : bloque.horaInicio;
+
+          const yaExiste = await db.Horario.findOne({
+            where: {
+              idDisciplina: d.idDisciplina,
+              fecha: fechaStr,
+              horaInicio: horaInicio,
+            },
+          });
+
+          if (!yaExiste) {
+            nuevosHorarios.push({
+              idDisciplina: d.idDisciplina,
+              fecha: fechaStr,
+              horaInicio: horaInicio,
+              horaFin: bloque.horaFin,
+              cupoMaximo: d.cupoPorTurno || 10,
+            });
+          }
+        }
+      }
+    }
+
+    await db.Horario.bulkCreate(nuevosHorarios, { ignoreDuplicates: true });
+
+    res.status(201).json({
+      ok: true,
+      msg: `${nuevosHorarios.length} horarios generados correctamente`,
+      data: nuevosHorarios,
+    });
+  } catch (error) {
+    console.error("Error al generar horarios:", error);
+    res.status(500).json({
+      ok: false,
+      msg: "Error interno al generar horarios",
+      error: error.message,
+    });
+  }
+};
+

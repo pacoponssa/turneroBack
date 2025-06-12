@@ -3,6 +3,7 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const app = express();
 const port = process.env.PORT || 3000;
+const cookieParser = require("cookie-parser");
 
 
 // Cargar variables de entorno desde .env (si existe)
@@ -19,7 +20,7 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-
+app.use(cookieParser());
 // CONEXIÓN A BASE DE DATOS
 
 const db = require("./models/index");

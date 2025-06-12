@@ -30,7 +30,7 @@ exports.crearDisciplina = (req, res) => {
     nombre,
     descripcion,
     cupoPorTurno,
-    disponibilidad, // Este campo se guarda como JSON en la BD
+    disponibilidad // Este campo se guarda como JSON en la BD
   })
     .then((registro) => {
       res.status(201).json({

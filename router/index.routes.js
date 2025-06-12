@@ -21,4 +21,7 @@ module.exports = (app) => {
     const rutasAI = require("./ai.routes");
     app.use("/api", rutasAI);
 
+    const rutasInscripcion = require("./inscripciones.routes");
+    app.use("/inscripcion", rutasInscripcion);
+
 };

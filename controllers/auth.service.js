@@ -26,12 +26,16 @@ async function verifyUser(email, password) {
 
 // Verifica que la clave secreta esté definida
 if (!process.env.ACCESS_TOKEN_SECRET) {
-  throw new Error("La clave secreta para el token de acceso (ACCESS_TOKEN_SECRET) no está definida en las variables de entorno.");
+  throw new Error("Error en el token de acceso.");
 }
 
 // Genera un token de acceso
 function generateAccessToken(data) {
   return jwt.sign(data, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "15m" });
+}
+
+function generateRefreshToken(data) {
+  return jwt.sign(data, process.env.REFRESH_TOKEN_SECRET, { expiresIn: "7d" });
 }
 
 // Registra un nuevo usuario con password encriptado
@@ -62,5 +66,6 @@ async function registerUser(email, password, nombre, telefono, rol = 1) {
 module.exports = {
   verifyUser,
   generateAccessToken,
+  generateRefreshToken,
   registerUser,
 };

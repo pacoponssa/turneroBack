@@ -174,40 +174,38 @@ exports.obtenerReservaPorId = (req, res) => {
 
 exports.obtenerReservasPorUsuario = async (req, res) => {
   try {
-    const { id } = req.params;
+    const idUsuario = req.params.id;
+    console.log("Buscando reservas para usuario ID:", idUsuario);
 
     const reservas = await db.Reserva.findAll({
-      where: { idUsuario: id },
-      include: {
-        model: db.Horario,
-        include: {
-          model: db.Disciplina,
-          attributes: ["nombre"],
+      where: { idUsuario },
+      include: [
+        {
+          model: db.Horario,
+          include: [{ model: db.Disciplina }],
         },
-      },
+      ],
     });
 
-    const reservasMapeadas = reservas.map((reserva) => ({
-      idReserva: reserva.idReserva,
-      fecha: reserva.Horario.fecha,
-      horaInicio: reserva.Horario.horaInicio,
-      horaFin: reserva.Horario.horaFin,
-      Disciplina: reserva.Horario.Disciplina,
-    }));
+    console.log("Reservas encontradas:", reservas.length);
 
     res.status(200).json({
       ok: true,
       msg: "Reservas del usuario",
-      data: reservasMapeadas,
+      data: reservas,
     });
   } catch (error) {
+    console.error("❌ Error en obtenerReservasPorUsuario:", error);
     res.status(500).json({
       ok: false,
-      msg: "Error al obtener las reservas del usuario",
-      error,
+      msg: "Error interno al obtener reservas del usuario",
+      error: error.message,
     });
   }
 };
+
+
+
 exports.obtenerReservasPorHorario = (req, res) => {
   const idHorario = req.params.id;
 

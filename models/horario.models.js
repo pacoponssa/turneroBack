@@ -8,7 +8,7 @@ module.exports = (sequelize, Sequelize) => {
       primaryKey: true,
     },
     fecha: {
-      type: DataTypes.DATE,
+      type: DataTypes.DATEONLY, // sin hora
       allowNull: false,
     },
     horaInicio: {
@@ -30,6 +30,12 @@ module.exports = (sequelize, Sequelize) => {
     },
   },{
         timestamps: false, 
+        indexes: [
+          {
+            fields: ['fecha', 'horaInicio', 'idDisciplina'], 
+            unique: true, // Asegura que no haya duplicados en combinación de fecha y horas
+          },
+        ],	
     });
 
   return Horario;F
