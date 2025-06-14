@@ -1,27 +1,30 @@
 module.exports = (app) => {
-     
-    const rutasUsuario = require("./usuario.routes");
-    app.use("/usuarios", rutasUsuario);
- 
-    const rutasDisciplina = require("./disciplina.routes");
-    app.use("/disciplina", rutasDisciplina);
+  const rutasUsuario = require("./usuario.routes");
+  app.use("/usuarios", rutasUsuario);
 
-    const rutasHorario = require("./horario.routes");
-    app.use("/horario", rutasHorario);
+  const rutasDisciplina = require("./disciplina.routes");
+  app.use("/disciplina", rutasDisciplina);
 
-    const rutasReserva = require("./reserva.routes");
-    app.use("/reserva", rutasReserva);
+  const rutasHorario = require("./horario.routes");
+  app.use("/horario", rutasHorario);
 
-    const rutasCancelacion = require("./cancelacion.routes");
-    app.use("/cancelacion", rutasCancelacion);
+  const rutasReserva = require("./reserva.routes");
+  app.use("/reserva", rutasReserva);
 
-    const rutasAuth = require("./auth.routes");
-    app.use("/auth", rutasAuth);
+  const rutasCancelacion = require("./cancelacion.routes");
+  app.use("/cancelacion", rutasCancelacion);
 
-    const rutasAI = require("./ai.routes");
-    app.use("/api", rutasAI);
+  const rutasAuth = require("./auth.routes");
+  app.use("/auth", rutasAuth);
 
-    const rutasInscripcion = require("./inscripciones.routes");
-    app.use("/inscripcion", rutasInscripcion);
+  const rutasAI = require("./ai.routes");
+  app.use("/api", rutasAI);
 
+  // 👇 Asignación de disciplinas (Admin)
+  const rutasInscripcion = require("./inscripcion.routes");
+  app.use("/inscripcion", rutasInscripcion);
+
+  // 👇 Inscripciones a horarios (Alumno)
+  const rutasInscripciones = require("./inscripciones.routes");
+  app.use("/inscripciones", rutasInscripciones);
 };

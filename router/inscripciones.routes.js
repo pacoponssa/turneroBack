@@ -1,28 +1,19 @@
+// routes/inscripciones.routes.js
+// Este archivo maneja inscripciones a HORARIOS (turnos), no a disciplinas.
+
+
+// routes/inscripciones.routes.js
 const express = require("express");
 const router = express.Router();
-const inscripcionController = require("../controllers/inscripcion.controllers");
+const inscripcionesController = require("../controllers/inscripciones.controllers");
 
-router.post("/", inscripcionController.crearInscripcion);
-router.get("/usuario/:idUsuario", inscripcionController.inscripcionesPorUsuario);
-// router.delete("/:id", inscripcionController.eliminarInscripcion);
+// Crea una inscripción a un horario
+router.post("/", inscripcionesController.crearInscripcion);
 
-router.delete("/inscripcion/:id", async (req, res) => {
-  try {
-    const id = req.params.id;
+// Lista inscripciones del usuario
+router.get("/usuario/:idUsuario", inscripcionesController.inscripcionesPorUsuario);
 
-    const resultado = await db.Inscripcion.destroy({
-      where: { idInscripcion: id }
-    });
-
-    if (resultado === 0) {
-      return res.status(404).json({ msg: "Inscripción no encontrada" });
-    }
-
-    res.json({ msg: "Inscripción eliminada correctamente" });
-  } catch (err) {
-    console.error("Error al eliminar inscripción:", err); // Esto mostrará el error
-    res.status(500).json({ msg: "Error interno al eliminar inscripción" });
-  }
-});
+// Cancela una inscripción
+router.delete("/inscripcion/:id", inscripcionesController.eliminarInscripcion);
 
 module.exports = router;

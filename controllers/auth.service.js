@@ -5,9 +5,9 @@ const db = require("../models/index");
 const Usuario = db.Usuario;
 
 // Verifica el usuario y la contraseña desde la base de datos
-async function verifyUser(email, password) {
-  console.log("llega a verifyUser", email, password);
-  const user = await Usuario.findOne({ where: { email } });
+async function verifyUser(dni, password) {
+  console.log("llega a verifyUser", dni, password);
+  const user = await Usuario.findOne({ where: { dni } });
   console.log("Usuario encontrado en la base de datos:", user);
 
   if (!user || !user.password) {
@@ -39,9 +39,9 @@ function generateRefreshToken(data) {
 }
 
 // Registra un nuevo usuario con password encriptado
-async function registerUser(email, password, nombre, telefono, rol = 1) {
+async function registerUser(dni, password, nombre, telefono, rol = 1) {
   // Verifica si el usuario ya existe
-  const existingUser = await Usuario.findOne({ where: { email } });
+  const existingUser = await Usuario.findOne({ where: { dni } });
   if (existingUser) {
     throw new Error("El usuario ya existe");
   }
@@ -51,7 +51,7 @@ async function registerUser(email, password, nombre, telefono, rol = 1) {
 
   // Crea y guarda el nuevo usuario con los campos adicionales
   const newUser = await Usuario.create({
-    email,
+    dni,
     password: hashedPassword,
     nombre,
     telefono,
@@ -60,7 +60,7 @@ async function registerUser(email, password, nombre, telefono, rol = 1) {
 
   console.log("newUser:", newUser);
 
-  return { email: newUser.email, nombre: newUser.nombre, telefono: newUser.telefono, rol: newUser.rol };
+  return { dni: newUser.dni, nombre: newUser.nombre, telefono: newUser.telefono, rol: newUser.rol };
 }
 
 module.exports = {

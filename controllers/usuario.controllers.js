@@ -60,28 +60,41 @@ exports.obtenerUsuarioPorId = (req, res) => {
 
 // Crear usuario (usando registerUser con encriptación incluida)
 exports.crearUsuario = async (req, res) => {
-  const { nombre, email, password, telefono, rol } = req.body;
-
   try {
-    // Se usa el método centralizado que incluye validaciones y encriptado
-    const nuevoUsuario = await registerUser(email, password, nombre, telefono, rol);
-
+    const nuevoUsuario = await Usuario.create(req.body);
     res.status(201).json({
-      message: "Usuario creado exitosamente",
-      data: nuevoUsuario,
+      msg: "Usuario creado correctamente",
+      data: { idUsuario: nuevoUsuario.idUsuario },
     });
   } catch (error) {
-    res.status(500).json({
-      message: "Error al crear usuario",
-      error: error.message,
-    });
+    res
+      .status(500)
+      .json({ msg: "Error al crear el usuario", error: error.message });
   }
 };
+// exports.crearUsuario = async (req, res) => {
+//   const { nombre, dni, password, telefono, rol } = req.body;
+
+//   try {
+//     // Se usa el método centralizado que incluye validaciones y encriptado
+//     const nuevoUsuario = await registerUser(dni, password, nombre, telefono, rol);
+
+//     res.status(201).json({
+//       message: "Usuario creado exitosamente",
+//       data: nuevoUsuario,
+//     });
+//   } catch (error) {
+//     res.status(500).json({
+//       message: "Error al crear usuario",
+//       error: error.message,
+//     });
+//   }
+// };
 
 // Actualizar usuario
 exports.actualizarUsuario = async (req, res) => {
   const { id } = req.params;
-  let { nombre, email, password, telefono, rol } = req.body;
+  let { nombre, dni, password, telefono, rol } = req.body;
 
   try {
     const usuario = await Usuario.findByPk(id);
@@ -97,7 +110,7 @@ exports.actualizarUsuario = async (req, res) => {
     // Se actualizan todos los campos que hayan llegado
     await usuario.update({
       nombre,
-      email,
+      dni,
       telefono,
       rol,
       ...(password && { password }), // Se actualiza password solo si vino
@@ -105,7 +118,9 @@ exports.actualizarUsuario = async (req, res) => {
 
     res.status(200).json({ message: "Usuario actualizado", data: usuario });
   } catch (error) {
-    res.status(500).json({ message: "Error al actualizar usuario", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Error al actualizar usuario", error: error.message });
   }
 };
 

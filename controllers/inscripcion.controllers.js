@@ -1,36 +1,65 @@
+// controllers/inscripcion.controller.js
+// 👉 Para asignar disciplinas a un usuario (uso del admin)
+
 const db = require("../models");
 
-exports.crearInscripcion = async (req, res) => {
-  const { idUsuario, idDisciplina } = req.body;
+exports.asignarDisciplinasAUsuario = async (req, res) => {
+  const { idUsuario } = req.params;
+  const { idsDisciplinas } = req.body;
+
   try {
-    const nueva = await db.Inscripcion.create({
-      idUsuario,
-      idDisciplina,
-      fechaInscripcion: new Date(),
-    });
-    res.status(201).json({ ok: true, data: nueva });
+    await db.Inscripcion.destroy({ where: { idUsuario } });
+
+    for (let idDisciplina of idsDisciplinas) {
+      await db.Inscripcion.create({
+        UsuarioIdUsuario: idUsuario,
+        DisciplinaIdDisciplina: idDisciplina,
+        fechaInscripcion: new Date(),
+      });
+    }
+
+    res.json({ msg: "Inscripciones actualizadas correctamente" });
   } catch (error) {
-    res.status(400).json({ ok: false, msg: "Error al inscribirse", error });
+    console.error("Error al asignar disciplinas:", error);
+    res.status(500).json({ msg: "Error interno al asignar disciplinas" });
   }
 };
 
-exports.inscripcionesPorUsuario = async (req, res) => {
+exports.obtenerDisciplinasDeUsuario = async (req, res) => {
+  const { idUsuario } = req.params;
+
   try {
     const inscripciones = await db.Inscripcion.findAll({
-      where: { idUsuario: req.params.idUsuario },
-      include: db.Disciplina,
+      where: { UsuarioIdUsuario: idUsuario },
+      include: [{ model: db.Disciplina }],
     });
-    res.json({ ok: true, data: inscripciones });
+
+    const disciplinas = inscripciones.map((i) => i.Disciplina);
+    res.json({ data: disciplinas });
   } catch (error) {
-    res.status(500).json({ ok: false, error });
+    console.error("Error al obtener disciplinas:", error);
+    res.status(500).json({ msg: "Error interno al obtener disciplinas" });
   }
 };
 
-exports.eliminarInscripcion = async (req, res) => {
+exports.eliminarDisciplinaDeUsuario = async (req, res) => {
+  const { idUsuario, idDisciplina } = req.params;
+
   try {
-    await db.Inscripcion.destroy({ where: { idInscripcion: req.params.idInscripcion } });
-    res.json({ ok: true, msg: "Inscripción cancelada" });
+    const resultado = await db.Inscripcion.destroy({
+      where: {
+        UsuarioIdUsuario: idUsuario,
+        DisciplinaIdDisciplina: idDisciplina,
+      },
+    });
+
+    if (resultado === 0) {
+      return res.status(404).json({ msg: "Inscripción no encontrada" });
+    }
+
+    res.json({ msg: "Inscripción eliminada correctamente" });
   } catch (error) {
-    res.status(500).json({ ok: false, error });
+    console.error("Error al eliminar inscripción:", error);
+    res.status(500).json({ msg: "Error interno al eliminar inscripción" });
   }
 };

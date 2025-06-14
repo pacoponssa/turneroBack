@@ -16,15 +16,15 @@ function generateRefreshToken(data) {
 
 
 async function login(req, res) {
-  const { email, password } = req.body;
+  const { dni, password } = req.body;
 
-  const user = await verifyUser(email, password);
+  const user = await verifyUser(dni, password);
   if (!user)
     return res.status(403).json({ message: "Email o password incorrectos" });
 
   const userData = {
     idUsuario: user.idUsuario,
-    email: user.email,
+    dni: user.dni,
     rol: user.rol,
   };
 
@@ -35,7 +35,7 @@ async function login(req, res) {
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
     secure: false, 
-    sameSite: "strict",
+    sameSite: "lax",
     maxAge: 7 * 24 * 60 * 60 * 1000, 
   });
 
@@ -45,7 +45,7 @@ async function login(req, res) {
     usuario: {
       idUsuario: user.idUsuario,
       nombre: user.nombre,
-      email: user.email,
+      dni: user.dni,
       rol: user.rol,
     },
   });
@@ -60,8 +60,8 @@ function refreshToken(req, res) {
   jwt.verify(token, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
     if (err) return res.status(403).json({ message: "Refresh token inválido" });
 
-    const { idUsuario, email, rol } = user;
-    const newAccessToken = generateAccessToken({ idUsuario, email, rol });
+    const { idUsuario, dni, rol } = user;
+    const newAccessToken = generateAccessToken({ idUsuario, dni, rol });
 
     res.json({ accessToken: newAccessToken });
   });
@@ -75,10 +75,10 @@ function logout(req, res) {
 
 
 async function register(req, res) {
-  const { email, password, nombre, telefono, rol } = req.body;
+  const { dni, password, nombre, telefono, rol } = req.body;
 
   try {
-    const newUser = await registerUser(email, password, nombre, telefono, rol);
+    const newUser = await registerUser(dni, password, nombre, telefono, rol);
     res.status(201).json({
       message: "Usuario registrado exitosamente",
       user: newUser,

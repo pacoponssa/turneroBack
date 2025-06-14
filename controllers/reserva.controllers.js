@@ -24,68 +24,65 @@ exports.obtenerReservas = (req, res) => {
 };
 
 // CREAR RESERVA CON CONTROL DE CUPO
+
 exports.crearReserva = async (req, res) => {
   const { idUsuario, idHorario } = req.body;
 
   try {
-    // Validar que el horario exista y tenga su disciplina asociada
-    const horario = await Horario.findByPk(idHorario, {
-      include: { model: Disciplina },
+    // 1. Verificar si el usuario ya tiene una reserva en ese horario
+    const existeReserva = await db.Reserva.findOne({
+      where: {
+        idUsuario,
+        idHorario,
+      },
+    });
+
+    if (existeReserva) {
+      return res
+        .status(400)
+        .json({ msg: "Ya tienes una reserva para este horario." });
+    }
+
+    // 2. Contar cuántas reservas hay para ese horario
+    const totalReservas = await db.Reserva.count({
+      where: { idHorario },
+    });
+
+    // 3. Traer el horario y su disciplina para saber el cupo
+    const horario = await db.Horario.findByPk(idHorario, {
+      include: db.Disciplina,
     });
 
     if (!horario) {
-      return res.status(404).json({ message: "Horario no encontrado." });
+      return res.status(404).json({ msg: "Horario no encontrado" });
     }
 
-    const cupoMaximo = horario.Disciplina?.cupoPorTurno;
+    const cupoMaximo = horario.Disciplina.cupoPorTurno;
 
-    if (!cupoMaximo) {
-      return res.status(400).json({ message: "No se definió el cupo para esta disciplina." });
+    if (totalReservas >= cupoMaximo) {
+      return res
+        .status(400)
+        .json({ msg: "El cupo para este horario está completo." });
     }
 
-    // Verificar si ya existe una reserva para el mismo usuario en ese horario
-    const reservaExistente = await Reserva.findOne({
-      where: { idUsuario, idHorario },
-    });
-
-    if (reservaExistente) {
-      return res.status(400).json({ message: "Ya tiene una reserva en este horario." });
-    }
-
-    // Contar reservas actuales para ese horario
-    const reservasActuales = await Reserva.count({ where: { idHorario } });
-
-    if (reservasActuales >= cupoMaximo) {
-      return res.status(400).json({ message: "No hay cupo disponible para este horario." });
-    }
-
-    // Crear la reserva
-    const nuevaReserva = await Reserva.create({
+    // 4. Crear la reserva
+    const nuevaReserva = await db.Reserva.create({
       idUsuario,
       idHorario,
-      fechaReserva: new Date(), // Se registra la fecha de reserva
+      fechaReserva: new Date(),
     });
 
-    res.status(201).json({
-      ok: true,
-      msg: "Reserva creada",
-      status: 201,
-      data: nuevaReserva,
-    });
+    res.status(201).json({ msg: "Reserva creada", data: nuevaReserva });
   } catch (error) {
-    res.status(500).json({
-      ok: false,
-      msg: "Error al crear la reserva",
-      status: 500,
-      data: error.message,
-    });
+    console.error("Error al crear reserva:", error);
+    res.status(500).json({ msg: "Error interno al crear la reserva" });
   }
 };
 
 exports.eliminarReserva = (req, res) => {
   const idReserva = req.params.id;
 
-  Reserva.destroy({ where: { idReserva } }) 
+  Reserva.destroy({ where: { idReserva } })
     .then((resultado) => {
       if (resultado) {
         res.status(200).json({
@@ -204,8 +201,6 @@ exports.obtenerReservasPorUsuario = async (req, res) => {
   }
 };
 
-
-
 exports.obtenerReservasPorHorario = (req, res) => {
   const idHorario = req.params.id;
 
@@ -235,5 +230,4 @@ exports.obtenerReservasPorHorario = (req, res) => {
         data: error,
       });
     });
-};  
-
+};
