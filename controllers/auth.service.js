@@ -10,10 +10,15 @@ async function verifyUser(dni, password) {
   const user = await Usuario.findOne({ where: { dni } });
   console.log("Usuario encontrado en la base de datos:", user);
 
-  if (!user || !user.password) {
+  if (!user ) {
     console.error("Usuario no encontrado o password no definido");
     return null;
   }
+  if (!user.password) {
+  console.warn("⚠️ La contraseña es incorrecta para el usuario", dni);
+  return null;
+  }
+
 
   console.log("Password proporcionado:", password);
   console.log("Password almacenado:", user.password);
@@ -47,12 +52,12 @@ async function registerUser(dni, password, nombre, telefono, rol = 1) {
   }
 
   // Encripta el password
-  const hashedPassword = await bcrypt.hash(password, 10);
+  // const hashedPassword = await bcrypt.hash(password, 10);
 
   // Crea y guarda el nuevo usuario con los campos adicionales
   const newUser = await Usuario.create({
     dni,
-    password: hashedPassword,
+    password, //hashedPassword,
     nombre,
     telefono,
     rol

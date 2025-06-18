@@ -41,14 +41,14 @@ db.sequelize.sync({ alter: true })
   });
 
 // RUTAS
-// const inscripcionRoutes = require('./router/inscripcion.routes');
-// app.use("/inscripcion", inscripcionRoutes);
+const inscripcionRoutes = require('./router/inscripcion.routes');
+app.use("/inscripcion", inscripcionRoutes);
 
-// const inscripcionesRoutes = require('./router/inscripciones.routes');
-// app.use("/inscripciones", inscripcionesRoutes);
+const inscripcionesRoutes = require('./router/inscripciones.routes');
+app.use("/inscripciones", inscripcionesRoutes);
 
-// const reservaRoutes = require('./router/reserva.routes');
-// app.use("/reservas", reservaRoutes); // o el endpoint que uses
+const reservaRoutes = require('./router/reserva.routes');
+app.use("/reservas", reservaRoutes); // o el endpoint que uses
 
 
 // Rutas de autenticación: /auth/login, /auth/register, etc.

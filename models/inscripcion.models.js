@@ -14,6 +14,7 @@ module.exports = (sequelize, Sequelize) => {
       fechaInscripcion: {
         type: DataTypes.DATE,
         allowNull: false,
+        defaultValue: DataTypes.NOW,
       },
       HorarioIdHorario: {
         type: DataTypes.INTEGER,

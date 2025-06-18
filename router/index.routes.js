@@ -1,6 +1,6 @@
 module.exports = (app) => {
   const rutasUsuario = require("./usuario.routes");
-  app.use("/usuarios", rutasUsuario);
+  app.use("/usuario", rutasUsuario);
 
   const rutasDisciplina = require("./disciplina.routes");
   app.use("/disciplina", rutasDisciplina);

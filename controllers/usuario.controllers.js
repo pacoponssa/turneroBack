@@ -1,95 +1,80 @@
 const db = require("../models/index");
 const Usuario = db.Usuario;
-const { registerUser } = require("../controllers/auth.service");
-const bcrypt = require("bcrypt");
 
 // Obtener todos los usuarios
-exports.obtenerUsuarios = (req, res) => {
-  Usuario.findAll()
-    .then((registros) => {
-      res.status(200).json({
-        ok: true,
-        msg: "Listado de usuarios",
-        status: 200,
-        data: registros,
-      });
-    })
-    .catch((error) => {
-      res.status(500).json({
-        ok: false,
-        msg: "Error al obtener los usuarios",
-        status: 500,
-        data: error,
-      });
+exports.obtenerUsuarios = async (req, res) => {
+  try {
+    const registros = await Usuario.findAll();
+    res.status(200).json({
+      ok: true,
+      msg: "Listado de usuarios",
+      status: 200,
+      data: registros,
     });
+  } catch (error) {
+    res.status(500).json({
+      ok: false,
+      msg: "Error al obtener los usuarios",
+      status: 500,
+      data: error.message,
+    });
+  }
 };
 
 // Obtener usuario por ID
-exports.obtenerUsuarioPorId = (req, res) => {
+exports.obtenerUsuarioPorId = async (req, res) => {
   const _id = req.params.id;
-
-  Usuario.findOne({
-    where: { idUsuario: _id },
-  })
-    .then((registro) => {
-      if (registro) {
-        res.status(200).json({
-          ok: true,
-          msg: "Usuario encontrado",
-          status: 200,
-          data: registro,
-        });
-      } else {
-        res.status(404).json({
-          ok: false,
-          msg: "Usuario no encontrado",
-          status: 404,
-          data: null,
-        });
-      }
-    })
-    .catch((error) => {
-      res.status(500).json({
-        ok: false,
-        msg: "Error al obtener el usuario",
-        status: 500,
-        data: error,
+  try {
+    const registro = await Usuario.findOne({ where: { idUsuario: _id } });
+    if (registro) {
+      res.status(200).json({
+        ok: true,
+        msg: "Usuario encontrado",
+        status: 200,
+        data: registro,
       });
+    } else {
+      res.status(404).json({
+        ok: false,
+        msg: "Usuario no encontrado",
+        status: 404,
+        data: null,
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      ok: false,
+      msg: "Error al obtener el usuario",
+      status: 500,
+      data: error.message,
     });
+  }
 };
 
-// Crear usuario (usando registerUser con encriptación incluida)
+// Crear usuario (confía en el hook del modelo para el hash)
 exports.crearUsuario = async (req, res) => {
+  const { nombre, dni, password, telefono, rol } = req.body;
+
   try {
-    const nuevoUsuario = await Usuario.create(req.body);
+    const nuevoUsuario = await Usuario.create({
+      nombre,
+      dni,
+      password, // 👉 lo hashea el hook
+      telefono,
+      rol,
+    });
+
     res.status(201).json({
       msg: "Usuario creado correctamente",
       data: { idUsuario: nuevoUsuario.idUsuario },
     });
   } catch (error) {
-    res
-      .status(500)
-      .json({ msg: "Error al crear el usuario", error: error.message });
+    res.status(500).json({
+      msg: "Error al crear el usuario",
+      error: error.message,
+    });
   }
 };
-// exports.crearUsuario = async (req, res) => {
-//   const { nombre, dni, password, telefono, rol } = req.body;
-
-//   try {
-//     // Se usa el método centralizado que incluye validaciones y encriptado
-//     const nuevoUsuario = await registerUser(dni, password, nombre, telefono, rol);
-
-//     res.status(201).json({
-//       message: "Usuario creado exitosamente",
-//       data: nuevoUsuario,
-//     });
-//   } catch (error) {
-//     res.status(500).json({
-//       message: "Error al crear usuario",
-//       error: error.message,
-//     });
-//   }
-// };
 
 // Actualizar usuario
 exports.actualizarUsuario = async (req, res) => {
@@ -102,49 +87,43 @@ exports.actualizarUsuario = async (req, res) => {
       return res.status(404).json({ message: "Usuario no encontrado" });
     }
 
-    // Si se envió una nueva contraseña, se encripta
+    // Actualización individual (password será hasheado si cambió, gracias al hook)
+    usuario.nombre = nombre ?? usuario.nombre;
+    usuario.dni = dni ?? usuario.dni;
+    usuario.telefono = telefono ?? usuario.telefono;
+    usuario.rol = rol ?? usuario.rol;
     if (password) {
-      password = await bcrypt.hash(password, 10);
+      usuario.password = password; // 👉 también será hasheado por el hook
     }
 
-    // Se actualizan todos los campos que hayan llegado
-    await usuario.update({
-      nombre,
-      dni,
-      telefono,
-      rol,
-      ...(password && { password }), // Se actualiza password solo si vino
-    });
+    await usuario.save();
 
     res.status(200).json({ message: "Usuario actualizado", data: usuario });
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Error al actualizar usuario", error: error.message });
+    res.status(500).json({
+      message: "Error al actualizar usuario",
+      error: error.message,
+    });
   }
 };
 
 // Eliminar usuario
-exports.eliminarUsuario = (req, res) => {
+exports.eliminarUsuario = async (req, res) => {
   const _id = req.params.id;
-
-  Usuario.destroy({
-    where: { idUsuario: _id },
-  })
-    .then((registro) => {
-      res.status(200).json({
-        ok: true,
-        msg: "Usuario eliminado",
-        status: 200,
-        data: registro,
-      });
-    })
-    .catch((error) => {
-      res.status(500).json({
-        ok: false,
-        msg: "Error al eliminar el usuario",
-        status: 500,
-        data: error,
-      });
+  try {
+    const result = await Usuario.destroy({ where: { idUsuario: _id } });
+    res.status(200).json({
+      ok: true,
+      msg: "Usuario eliminado",
+      status: 200,
+      data: result,
     });
+  } catch (error) {
+    res.status(500).json({
+      ok: false,
+      msg: "Error al eliminar el usuario",
+      status: 500,
+      data: error.message,
+    });
+  }
 };

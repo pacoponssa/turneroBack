@@ -1,53 +1,63 @@
+
 const Sequelize = require("sequelize");
 const sequelize = require("./sequelize");
 
+const db = {};
+
+db.Sequelize = Sequelize;
+db.sequelize = sequelize;
+
 // Importar modelos
-const Usuario = require("./usuario.models")(sequelize, Sequelize);
-const Disciplina = require("./disciplina.models")(sequelize, Sequelize);
-const Horario = require("./horario.models")(sequelize, Sequelize);
-const Reserva = require("./reserva.models")(sequelize, Sequelize);
-const Cancelacion = require("./cancelacion.models")(sequelize, Sequelize);
-const Inscripcion = require("./inscripcion.models")(sequelize, Sequelize);
+db.Usuario = require("./usuario.models")(sequelize, Sequelize);
+db.Disciplina = require("./disciplina.models")(sequelize, Sequelize);
+db.Horario = require("./horario.models")(sequelize, Sequelize);
+db.Reserva = require("./reserva.models")(sequelize, Sequelize);
+db.Cancelacion = require("./cancelacion.models")(sequelize, Sequelize);
+db.Inscripcion = require("./inscripcion.models")(sequelize, Sequelize);
+db.InscripcionUsuario = require("./inscripcionUsuario.models")(
+  sequelize,
+  Sequelize
+);
 
 // Relaciones
 
-Inscripcion.belongsTo(Usuario, { foreignKey: "idUsuario" });
-Usuario.hasMany(Inscripcion, { foreignKey: "idUsuario" });
+// Inscripción a horarios (turnos)
+db.Inscripcion.belongsTo(db.Usuario, { foreignKey: "idUsuario" });
+db.Usuario.hasMany(db.Inscripcion, { foreignKey: "idUsuario" });
 
-Inscripcion.belongsTo(Horario, { foreignKey: "HorarioIdHorario" });
-Horario.hasMany(Inscripcion, { foreignKey: "HorarioIdHorario" });
+db.Inscripcion.belongsTo(db.Horario, { foreignKey: "HorarioIdHorario" });
+db.Horario.hasMany(db.Inscripcion, { foreignKey: "HorarioIdHorario" });
 
-Disciplina.hasMany(Horario, { foreignKey: "idDisciplina" });
-Horario.belongsTo(Disciplina, { foreignKey: "idDisciplina" });
+// Horarios por disciplina
+db.Disciplina.hasMany(db.Horario, { foreignKey: "idDisciplina" });
+db.Horario.belongsTo(db.Disciplina, { foreignKey: "idDisciplina" });
 
-Usuario.hasMany(Reserva, { foreignKey: "idUsuario" });
-Reserva.belongsTo(Usuario, { foreignKey: "idUsuario" });
+// Reservas
+db.Usuario.hasMany(db.Reserva, { foreignKey: "idUsuario" });
+db.Reserva.belongsTo(db.Usuario, { foreignKey: "idUsuario" });
 
-Horario.hasMany(Reserva, { foreignKey: "idHorario" });
-Reserva.belongsTo(Horario, { foreignKey: "idHorario" });
+db.Horario.hasMany(db.Reserva, { foreignKey: "idHorario" });
+db.Reserva.belongsTo(db.Horario, { foreignKey: "idHorario" });
 
-Reserva.hasOne(Cancelacion, { foreignKey: "idReserva" });
-Cancelacion.belongsTo(Reserva, { foreignKey: "idReserva" });
+// Cancelaciones
+db.Reserva.hasOne(db.Cancelacion, { foreignKey: "idReserva" });
+db.Cancelacion.belongsTo(db.Reserva, { foreignKey: "idReserva" });
 
-Usuario.belongsToMany(Disciplina, {
-  through: "inscripciones_usuarios",
+// Disciplinas asignadas a usuarios (relación N:N)
+db.Usuario.belongsToMany(db.Disciplina, {
+  through: db.InscripcionUsuario,
   foreignKey: "idUsuario",
   otherKey: "idDisciplina",
+  as: "Disciplinas", // 👈 NECESARIO
 });
 
-Disciplina.belongsToMany(Usuario, {
-  through: "inscripciones_usuarios",
+db.Disciplina.belongsToMany(db.Usuario, {
+  through: db.InscripcionUsuario,
   foreignKey: "idDisciplina",
   otherKey: "idUsuario",
+  as: "Usuario", // 👈 opcional pero recomendable para simetría
 });
 
-module.exports = {
-  sequelize,
-  Sequelize,
-  Usuario,
-  Disciplina,
-  Horario,
-  Reserva,
-  Cancelacion,
-  Inscripcion,
-};
+module.exports = db;
+console.log("🔥 Modelos cargados y relaciones establecidas correctamente");
+
