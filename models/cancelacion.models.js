@@ -8,19 +8,13 @@ module.exports = (sequelize, Sequelize) => {
         autoIncrement: true,
         primaryKey: true,
       },
-
       motivo: {
-        type: DataTypes.TEXT,
+        type: DataTypes.STRING,
         allowNull: true,
-      },
-
-      fechaCancelacion: {
-        type: DataTypes.DATE,
-        allowNull: false,
       },
     },
     {
-      timestamps: false,
+      timestamps: true, // para tener fecha de cancelación
     }
   );
 

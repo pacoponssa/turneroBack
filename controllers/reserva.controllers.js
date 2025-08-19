@@ -2,25 +2,37 @@ const db = require("../models/index");
 const Reserva = db.Reserva;
 const Horario = db.Horario;
 const Disciplina = db.Disciplina;
+const Usuario = db.Usuario;
 
-exports.obtenerReservas = (req, res) => {
-  Reserva.findAll()
-    .then((registros) => {
-      res.status(200).json({
-        ok: true,
-        msg: "Listado de reservas",
-        status: 200,
-        data: registros,
-      });
-    })
-    .catch((error) => {
-      res.status(500).json({
-        ok: false,
-        msg: "Error al obtener las reservas",
-        status: 500,
-        data: error,
-      });
+exports.obtenerReservas = async (req, res) => {
+  try {
+    const reservas = await Reserva.findAll({
+      include: [
+        {
+          model: Horario,
+          include: [Disciplina],
+        },
+        {
+          model: Usuario, // opcional
+          attributes: ["idUsuario", "nombre", "dni"], // solo si querés mostrar info del alumno
+        },
+      ],
     });
+
+    res.json({
+      ok: true,
+      msg: "Listado de reservas",
+      status: 200,
+      data: reservas,
+    });
+  } catch (error) {
+    console.error("Error al obtener reservas:", error);
+    res.status(500).json({
+      ok: false,
+      msg: "Error al obtener reservas",
+      error,
+    });
+  }
 };
 
 // CREAR RESERVA CON CONTROL DE CUPO
@@ -230,4 +242,38 @@ exports.obtenerReservasPorHorario = (req, res) => {
         data: error,
       });
     });
+};
+
+
+exports.cancelarReserva = async (req, res) => {
+  const idReserva = req.params.id;
+
+  try {
+    const reserva = await db.Reserva.findByPk(idReserva);
+
+    if (!reserva) {
+      return res.status(404).json({
+        ok: false,
+        msg: "Reserva no encontrada",
+        status: 404,
+      });
+    }
+
+    reserva.cancelada = true;
+    await reserva.save();
+
+    res.status(200).json({
+      ok: true,
+      msg: "Reserva cancelada correctamente",
+      status: 200,
+    });
+  } catch (error) {
+    console.error("Error al cancelar reserva:", error);
+    res.status(500).json({
+      ok: false,
+      msg: "Error al cancelar la reserva",
+      status: 500,
+      error,
+    });
+  }
 };

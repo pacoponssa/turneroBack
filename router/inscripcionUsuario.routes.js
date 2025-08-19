@@ -5,7 +5,7 @@
 // routes/inscripciones.routes.js
 const express = require("express");
 const router = express.Router();
-const inscripcionesController = require("../controllers/inscripciones.controllers");
+const inscripcionesController = require("../controllers/inscripcionUsuario.controllers");
 
 // Crea una inscripción a un horario
 router.post("/", inscripcionesController.crearInscripcion);

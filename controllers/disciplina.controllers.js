@@ -1,5 +1,7 @@
 const db = require("../models/index");
 const Disciplina = db.Disciplina;
+const Usuario = db.Usuario;
+const InscripcionUsuario = db.sequelize.models.inscripciones_usuarios;
 
 // Obtener todas las disciplinas
 exports.obtenerDisciplinas = (req, res) => {
@@ -30,7 +32,7 @@ exports.crearDisciplina = (req, res) => {
     nombre,
     descripcion,
     cupoPorTurno,
-    disponibilidad // Este campo se guarda como JSON en la BD
+    disponibilidad, // Este campo se guarda como JSON en la BD
   })
     .then((registro) => {
       res.status(201).json({
@@ -87,19 +89,26 @@ exports.eliminarDisciplina = (req, res) => {
 // Actualizar una disciplina existente
 exports.actualizarDisciplina = (req, res) => {
   const _id = req.params.id;
-  const { nombre, descripcion, cupoPorTurno, disponibilidad } = req.body;
+  const {
+    nombre,
+    descripcion,
+    cupoPorTurno,
+    disponibilidad,
+    valorPorTurno, // 👈 agregamos este campo
+  } = req.body;
 
   Disciplina.update(
-    { nombre, descripcion, cupoPorTurno, disponibilidad },
+    { nombre, descripcion, cupoPorTurno, disponibilidad, valorPorTurno }, // 👈 lo incluimos acá
     { where: { idDisciplina: _id } }
   )
-    .then((resultado) => {
-      if (resultado[0] > 0) {
+    .then(async ([updated]) => {
+      if (updated > 0) {
+        const disciplinaActualizada = await Disciplina.findByPk(_id);
         res.status(200).json({
           ok: true,
           msg: "Disciplina actualizada",
           status: 200,
-          data: null,
+          data: disciplinaActualizada,
         });
       } else {
         res.status(404).json({
@@ -119,6 +128,7 @@ exports.actualizarDisciplina = (req, res) => {
       });
     });
 };
+
 
 // Obtener una disciplina por ID
 exports.obtenerDisciplinaPorId = (req, res) => {
@@ -151,3 +161,45 @@ exports.obtenerDisciplinaPorId = (req, res) => {
       });
     });
 };
+
+// // Asignar disciplinas al usuario (sustitución total)
+// exports.asignarDisciplinasAUsuario = async (req, res) => {
+//   const { idUsuario } = req.params;
+//   const { disciplinas } = req.body; // disciplinas: [1, 2, 3]
+
+//   try {
+//     // Obtener disciplinas actuales
+//     const usuario = await Usuario.findByPk(idUsuario, {
+//       include: {
+//         model: Disciplina,
+//         as: "Disciplinas",
+//         attributes: ["idDisciplina"],
+//       },
+//     });
+
+//     const actuales = usuario.Disciplinas.map((d) => d.idDisciplina);
+
+//     // Eliminar las no seleccionadas
+//     const aEliminar = actuales.filter((id) => !disciplinas.includes(id));
+//     if (aEliminar.length > 0) {
+//       await InscripcionUsuario.destroy({
+//         where: { idUsuario, idDisciplina: aEliminar },
+//       });
+//     }
+
+//     // Agregar nuevas
+//     const nuevas = disciplinas
+//       .filter((id) => !actuales.includes(id))
+//       .map((id) => ({ idUsuario, idDisciplina: id }));
+
+//     if (nuevas.length > 0) {
+//       await InscripcionUsuario.bulkCreate(nuevas);
+//       // Aquí podrías agregar lógica para crear reservas automáticamente si lo necesitás
+//     }
+
+//     res.status(200).json({ msg: "Disciplinas actualizadas correctamente" });
+//   } catch (error) {
+//     console.error("❌ Error al asignar disciplinas:", error);
+//     res.status(500).json({ msg: "Error al asignar disciplinas", error });
+//   }
+// };

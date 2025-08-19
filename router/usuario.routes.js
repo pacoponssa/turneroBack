@@ -7,8 +7,9 @@ const UsuarioController = require('../controllers/usuario.controllers');
 // C Create
 router.post('/', UsuarioController.crearUsuario );
 // R  Read
-router.get('/', UsuarioController.obtenerUsuarios );
 router.get('/:id', UsuarioController.obtenerUsuarioPorId );
+router.get('/', UsuarioController.obtenerUsuarios );
+
 // Rutas.get('/usuario/:disponible', UsuarioController.obtenerProductoDisponible);
 // U Update
 router.put('/:id', UsuarioController.actualizarUsuario );

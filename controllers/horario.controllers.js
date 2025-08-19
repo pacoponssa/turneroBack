@@ -202,8 +202,14 @@ exports.generarHorariosDesdeDisponibilidad = async (req, res) => {
 
       if (!Array.isArray(disponibilidad)) continue;
 
-      for (let fecha = new Date(hoy); fecha <= fin; fecha.setDate(fecha.getDate() + 1)) {
-        const dia = fecha.toLocaleDateString("es-AR", { weekday: "long" }).toLowerCase();
+      for (
+        let fecha = new Date(hoy);
+        fecha <= fin;
+        fecha.setDate(fecha.getDate() + 1)
+      ) {
+        const dia = fecha
+          .toLocaleDateString("es-AR", { weekday: "long" })
+          .toLowerCase();
 
         const bloques = disponibilidad.filter(
           (h) => h.dia?.toLowerCase() === dia
@@ -211,7 +217,10 @@ exports.generarHorariosDesdeDisponibilidad = async (req, res) => {
 
         for (const bloque of bloques) {
           const fechaStr = fecha.toISOString().slice(0, 10);
-          const horaInicio = bloque.horaInicio.length === 5 ? `${bloque.horaInicio}:00` : bloque.horaInicio;
+          const horaInicio =
+            bloque.horaInicio.length === 5
+              ? `${bloque.horaInicio}:00`
+              : bloque.horaInicio;
 
           const yaExiste = await db.Horario.findOne({
             where: {
@@ -251,3 +260,64 @@ exports.generarHorariosDesdeDisponibilidad = async (req, res) => {
   }
 };
 
+// NUEVO: Obtener horarios con alumnos y disciplina
+exports.obtenerHorariosConAlumnos = async (req, res) => {
+  try {
+    const horarios = await db.Horario.findAll({
+      include: [
+        {
+          model: db.Disciplina,
+          attributes: ["nombre"],
+        },
+        {
+          model: db.Reserva,
+          where: { cancelada: false },
+          required: false,
+          include: [
+            {
+              model: db.Usuario,
+              attributes: ["nombre"],
+            },
+          ],
+        },
+      ],
+    });
+
+    const eventos = [];
+
+    horarios.forEach((horario) => {
+      const fecha = horario.fecha;
+      const inicio = horario.horaInicio;
+      const fin = horario.horaFin;
+
+      const fechaHoraInicio = new Date(`${fecha}T${inicio}`);
+      const fechaHoraFin = new Date(`${fecha}T${fin}`);
+
+      if (horario.Reservas && horario.Reservas.length > 0) {
+        horario.Reservas.forEach((reserva) => {
+          eventos.push({
+            idReserva: reserva.idReserva,
+            nombreDisciplina: horario.Disciplina.nombre,
+            nombreAlumno: reserva.Usuario.nombre,
+            fechaHoraInicio,
+            fechaHoraFin,
+          });
+        });
+      } else {
+        eventos.push({
+          nombreDisciplina: horario.Disciplina.nombre,
+          nombreAlumno: "(sin alumnos)",
+          fechaHoraInicio,
+          fechaHoraFin,
+        });
+      }
+    });
+
+    res.status(200).json(eventos);
+  } catch (error) {
+    console.error(error);
+    res
+      .status(500)
+      .json({ msg: "Error al obtener eventos", error: error.message });
+  }
+};

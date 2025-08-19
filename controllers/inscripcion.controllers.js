@@ -16,7 +16,7 @@ exports.asignarDisciplinasAUsuario = async (req, res) => {
 
   try {
     // 1. Eliminar inscripciones anteriores
-    await Inscripcion.destroy({ where: { idUsuario } });
+    await db.InscripcionUsuario.destroy({ where: { idUsuario } });
 
     // 2. Crear nuevas inscripciones
     const nuevasInscripciones = idsDisciplinas.map((idDisciplina) => ({
@@ -25,32 +25,34 @@ exports.asignarDisciplinasAUsuario = async (req, res) => {
     }));
     await db.InscripcionUsuario.bulkCreate(nuevasInscripciones);
 
-    // 3. Asignar automáticamente reservas futuras de esas disciplinas
-    for (const idDisciplina of idsDisciplinas) {
-      const horarios = await Horario.findAll({
-        where: {
-          idDisciplina,
-          fecha: { [Op.gte]: new Date() },
-        },
-      });
+    // 3. Obtener todos los horarios futuros de todas las disciplinas seleccionadas
+    const horarios = await db.Horario.findAll({
+      where: {
+        idDisciplina: idsDisciplinas,
+        fecha: { [db.Sequelize.Op.gte]: new Date() },
+      },
+    });
 
-      for (const horario of horarios) {
-        const yaExiste = await Reserva.findOne({
-          where: {
-            idUsuario,
-            idHorario: horario.idHorario,
-          },
-        });
+    // 4. Filtrar aquellos horarios que aún no tengan una reserva para este usuario
+    const reservasExistentes = await db.Reserva.findAll({
+      where: {
+        idUsuario,
+        idHorario: horarios.map((h) => h.idHorario),
+      },
+      attributes: ["idHorario"],
+    });
 
-        if (!yaExiste) {
-          await Reserva.create({
-            idUsuario,
-            idHorario: horario.idHorario,
-            fechaReserva: new Date(),
-          });
-        }
-      }
-    }
+    const idsHorariosReservados = reservasExistentes.map((r) => r.idHorario);
+
+    const nuevasReservas = horarios
+      .filter((h) => !idsHorariosReservados.includes(h.idHorario))
+      .map((horario) => ({
+        idUsuario,
+        idHorario: horario.idHorario,
+        fechaReserva: new Date(),
+      }));
+
+    await db.Reserva.bulkCreate(nuevasReservas);
 
     res.status(200).json({
       ok: true,

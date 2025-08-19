@@ -4,10 +4,10 @@ const db = require("../models");
 // Crear una inscripción a un horario
 exports.crearInscripcion = async (req, res) => {
   try {
-    const { UsuarioIdUsuario, HorarioIdHorario } = req.body;
+    const { IdUsuario, HorarioIdHorario } = req.body;
 
     const nuevaInscripcion = await db.Inscripcion.create({
-      UsuarioIdUsuario,
+      IdUsuario,
       HorarioIdHorario,
       fechaInscripcion: new Date(),
     });
@@ -25,7 +25,7 @@ exports.inscripcionesPorUsuario = async (req, res) => {
     const { idUsuario } = req.params;
 
     const inscripciones = await db.Inscripcion.findAll({
-      where: { UsuarioIdUsuario: idUsuario },
+      where: { idUsuario: idUsuario },
       include: [{ model: db.Horario, include: [db.Disciplina] }],
     });
 

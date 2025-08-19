@@ -27,6 +27,11 @@ module.exports = (sequelize, Sequelize) => {
         comment:
           "Ej: [{ dia: 'Lunes', horaInicio: '10:00', horaFin: '11:00' }, ...]",
       },
+      valorPorTurno: {
+        type: DataTypes.DECIMAL(10, 2),
+        allowNull: false,
+        defaultValue: 1000,
+      },
     },
     {
       timestamps: false,
